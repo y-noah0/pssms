@@ -48,7 +48,7 @@ function App() {
               <Route path="payments" element={<Payments />} />
               <Route path="payments/new" element={<Payments action="new" />} />
               <Route path="reports" element={<Reports />} />
-              <Route path="reports/bill/:id" element={<Reports type="bill" />} />
+              <Route path="reports/bill/:id" element={<Reports />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />

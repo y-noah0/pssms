@@ -1,39 +1,43 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable no-unused-vars */
+import react from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { jsPDF } from 'jspdf';
-import { FaFileDownload, FaCalendarAlt, FaFileInvoice, FaArrowLeft } from 'react-icons/fa';
+import { FaFileDownload, FaCalendarAlt, FaFileInvoice, FaArrowLeft, FaClipboardList, FaMoneyBillWave } from 'react-icons/fa';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import FormInput from '../components/FormInput';
 import LoadingSpinner from '../components/LoadingSpinner';
 import PaymentService from '../services/paymentService';
-import ParkingRecordService from '../services/parkingRecordService';
+import ParkingRecordService from '../services/parkingRecordService' ;
+import { jsPDF } from 'jspdf';
 
 const Reports = () => {
-  const { type, id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dailyRecords, setDailyRecords] = useState([]);
-  const [dailyPayments, setDailyPayments] = useState([]);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [selectedPayment, setSelectedPayment] = useState(null);
-
-  useEffect(() => {
-    if (type === 'bill' && id) {
+  const [loading, setLoading] = react.useState(false);
+  const [date, setDate] = react.useState(new Date().toISOString().split('T')[0]);
+  const [dailyRecords, setDailyRecords] = react.useState([]);
+  const [dailyPayments, setDailyPayments] = react.useState([]);
+  const [selectedRecord, setSelectedRecord] = react.useState(null);
+  const [selectedPayment, setSelectedPayment] = react.useState(null);
+  react.useEffect(() => {
+    // If we have an ID in the URL params, it means we're viewing a bill
+    if (id) {
       fetchRecordAndPayment(id);
     }
-  }, [type, id]);
-
+  }, [id]);
   const fetchRecordAndPayment = async (recordId) => {
     try {
       setLoading(true);
+      console.log('Fetching data for record ID:', recordId);
       
       // Fetch the parking record
       const recordResponse = await ParkingRecordService.getParkingRecordById(recordId);
+      console.log('Record response:', recordResponse);
+      
       if (!recordResponse.success) {
         toast.error('Failed to fetch parking record');
+        setLoading(false);
         return;
       }
       
@@ -41,8 +45,11 @@ const Reports = () => {
       
       // Fetch the payment for this record
       const paymentResponse = await PaymentService.getPaymentByRecordId(recordId);
+      console.log('Payment response:', paymentResponse);
+      
       if (!paymentResponse.success) {
         toast.error('No payment found for this record');
+        setLoading(false);
         return;
       }
       
@@ -50,27 +57,31 @@ const Reports = () => {
       
       setLoading(false);
     } catch (error) {
+      console.error('Error fetching bill data:', error);
       toast.error(error.message || 'Failed to fetch data');
       setLoading(false);
     }
   };
-
   const fetchDailyReport = async (e) => {
     e.preventDefault();
     
     try {
       setLoading(true);
+      console.log("Fetching daily report for date:", date);
       
       // Fetch daily parking records
       const recordsResponse = await ParkingRecordService.getDailyParkingRecords(date);
+      console.log("Records response:", recordsResponse);
       setDailyRecords(recordsResponse.success ? recordsResponse.dailyRecords : []);
       
       // Fetch daily payments
       const paymentsResponse = await PaymentService.getDailyPayments(date);
+      console.log("Payments response:", paymentsResponse);
       setDailyPayments(paymentsResponse.success ? paymentsResponse.dailyPayments : []);
       
       setLoading(false);
     } catch (error) {
+      console.error("Error fetching report:", error);
       toast.error(error.message || 'Failed to fetch daily report');
       setLoading(false);
     }
@@ -288,9 +299,8 @@ const Reports = () => {
     };
     return new Date(dateString).toLocaleString(undefined, options);
   };
-
   // Bill view
-  if (type === 'bill' && id) {
+  if (id) {
     return (
       <div>
         <Button 
